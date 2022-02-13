@@ -1,0 +1,1665 @@
+Pазработка программного учета защит курсовых проектов
+
+#include <windows.h>
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <conio.h>
+#include <string.h>
+#include <ctype.h>
+#include <cctype>
+#include <locale.h>
+#include <ctime>
+#include <iomanip>
+using namespace std;
+int n,o; 
+struct baza
+{
+	char nfs2[40];
+	char nfs[40];
+    int  bal; // бал
+    char name[30];  // и студ
+	char surname[30];  // ф студ
+	char fname[30];  // о студ
+	 char nameK[30];  // и рук
+	char surnameK[30];  // ф рук
+	char fnameK[30];  // о рук
+int d;//день///
+int m;//месяц//
+int y;//год///	
+int spec1; // цифра отрасли
+char Gr1[2]; // група
+int GR2; // год групі
+int GR3; //  нумерация групі
+int spec2; // шифр специальности
+char ozn[1]; // под символ на групу
+};
+FILE *f;
+void menu(); // меню редактирования
+void menuf();// меню  сортировки
+void menup(); // меню  поиска
+void View(); // функция вывода таблицы
+void ViewD(); // функция  по неудволетворительніх оценок
+void Add(); // функция  добавления записи
+void Sort(); // функция сортировки ФИО по алфавиту
+void Sort1(); // функция сортировки ФИОК по алфавиту
+void Sort2(); // функция сортировки даты 
+void Sort3(); // функция сортировки бала 
+void Delete(); // функция удаления
+void Edit(); // функция редактирования
+void onef(); // функция поиска по ФИО
+void ones(); // функция поиска по специальности
+void oneg(); // функция поиска по группе
+void onefk(); // функция поиска по ФИОК
+int Inzap(baza baz); // функция сортировки бала по алфавиту
+char * Check();// функция коректировки фио
+void Crte(); // функция создания файла
+void VIEWG(); // // // ОБЩИЙ РЕЙТИНГ ПО ГРУППЕ
+void VIEWR(); // // // ОБЩИЙ РЕЙТИНГ ПО СПЕЦИАЛЬНОСТИ
+int DefDay(baza baz); // корректировка дат
+void ViewPO(); // полній вівод
+ void Grp(baza* baz1); // корректировка  ПО ГРУППЕ
+int main()
+{ 	
+	SetConsoleCP(1251);
+	SetConsoleOutputCP(1251);
+	setlocale(LC_ALL, "Rus");
+    unsigned short int n, n2;
+    bool n1 = true;
+    while( n1 )
+    {
+    	system("cls");
+        cout << endl << "Добро пожаловать в программу для записи информации о сдаче курсовых проэктов "<< endl;     
+    	cout << endl << "                            Главное Меню ";
+    	cout << endl << "1-Cоздать  файл ";
+    	cout << endl << "2-Просмотр файла ";
+		cout << endl << "3-Меню редактирования ";		
+		cout << endl << "4-Меню поиска ";
+		cout << endl << "5-Студенты здавшие проэкт на неудволетворительный бал ";
+		cout << endl << "6-Просмотр файла полностью ";
+		cout << endl << "7-Выход из программы  ";
+		cout << endl << "Введите номер пункта меню: ";
+        while(!(cin>>n) || cin.get() != '\n')
+        {
+            cout<<"Такого пункта меню нет ! Повторите ввод: ";
+            t:
+            cin.clear(); 
+            cin.sync();
+        }
+        if(n<=7 && n>=1)
+			switch(n)
+        	{
+            case 1:{ Crte(); break; }
+		  case 2:{menuf(); break; } 
+            case 3:{menu(); break; }
+			case 4:{menup(); break; }      
+			case 5:{ViewD(); break; }  
+				case 6:{ViewPO(); break; }    	
+				case 7:{n1 = false; break;}          
+			}
+		else
+		{
+			cout << endl << "Такого пункта меню нет, повторите ввод: ";
+			goto t;
+		}
+    }
+    return 0;
+}
+void Add() // DOBAVLENIE ZAPISI
+{
+    system("cls");
+	baza baz;
+	int j;
+	char c = '2';
+	while (c == '2')
+	{											    	cout<<endl<<"Введите данные ";
+cout << endl << "Введите ФИО студента "; 
+		cout << endl << "Введите фамилию студента: ";		
+		cin.clear(); cin.sync();
+		baz.surname[0]='\0';
+		strcpy(baz.surname,Check());
+		cout << endl << "Введите имя студента: ";		
+		cin.clear(); cin.sync();
+		baz.name[0]='\0';
+		strcpy(baz.name,Check());
+		cout << endl << "Введите отчество студента: ";		
+		cin.clear(); cin.sync();
+		baz.fname[0]='\0';
+		strcpy(baz.fname,Check());
+	                                                     														  	cout<<endl<<"Специальность ";
+	    cout<<endl<<"Введите  номер отрасли знаний: ";
+		     if(!(cin>>baz.spec1) || cin.get() != '\n')
+                {
+                    c2:
+                    cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Введите от 1 до 9) :   ";
+                    cin.clear(); 
+                    cin.sync();
+                    getch();
+                    cin>>baz.spec1;
+                }
+            if(baz.spec1<0||baz.spec1>10) goto c2;  
+	 cout<<"Введите шифр специальности: "; 
+	     if(!(cin>>baz.spec2) || cin.get() != '\n')
+                {
+                    c1:
+                    cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Шифр состоит из 8 цифр ) :    ";
+                    cin.clear(); 
+                    cin.sync();
+                    getch();
+                    cin>>baz.spec2;
+                }
+            if(baz.spec2<1000000||baz.spec2>99999999) goto c1;    
+	                                                               												cout<<endl<<"Группа ";  
+	  cout<<endl<<"Введите название специальности в шифре группы:   "; 
+	cin.clear(); cin.sync();
+	char character[2];
+	gets(character);
+	for(int i=0; i<2; i++) 
+	{
+	if( islower(character[i]) )              
+    character[i] = toupper(character[i]);
+   	}
+    cout<<"Введенное после обработки:"<<character;
+    strcpy(baz.Gr1,character);    
+    cout<<endl<<"Введите  две последних цифры года поступления (2000-2017 год):  "; 
+	if(!(cin>>baz.GR2) || cin.get() != '\n')
+                { q1:
+                    cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Введите  две последние цифры года набора группы  ):    ";
+                    cin.clear(); 
+                    cin.sync();
+                    getch();
+                    cin>>baz.GR2;}
+if(baz.GR2<0||baz.GR2>18) goto q1;    
+Grp(&baz);
+ cout<<endl<<"Введите номер группы по счету в своей специальности (1-2):  "; 
+if(!(cin>>baz.GR3) || cin.get() != '\n')
+ {q2:
+   cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Введите номер группы по счету в своей специальности  ):    ";
+  cin.clear(); 
+   cin.sync();
+     getch();
+  cin>>baz.GR2;}
+    if(baz.GR3<0||baz.GR3>3) goto q2;    
+	 																								cout<<endl<<"Введите ФИО руководителя курсовым "; 	
+		cout << endl << "Введите фамилию руководителя: ";		
+		cin.clear(); cin.sync();
+		baz.surnameK[0]='\0';
+		strcpy(baz.surnameK,Check());
+		cout << endl << "Введите имя руководителя: ";		
+		cin.clear(); cin.sync();
+		baz.nameK[0]='\0';
+		strcpy(baz.nameK,Check());
+		cout << endl << "Введите отчество руководителя: ";		
+		cin.clear(); cin.sync();
+		baz.fnameK[0]='\0';
+		strcpy(baz.fnameK,Check());
+																													cout<<endl<<"Дата ";
+{cout<<endl<<"Введите месяц(1-12): ";
+    	metkam:
+    	while (!(cin >> baz.m) || cin.get() != '\n')
+    	{
+    		system("cls");
+    	 	cout << "Неверно введен месяц. Повторите. " << endl;
+		 	cin.clear();cin.sync();
+		 	cout << "Выберите правильный месяц(1-12): ";
+	    }
+		if (baz.m<1||baz.m>12)
+		{
+			system("cls");
+  			cout<<"Введите месяц из диапазона от 1 до 12: ";
+  			goto metkam;
+		}
+    	cout<<endl<<"Введите год(2001-2017): ";
+		metkay:
+		while (!(cin >> baz.y) || cin.get() != '\n')
+  		{
+  			system("cls");
+  			cout << "Некорректно введеный год. Повторите. " << endl;
+  			cin.clear();cin.sync();
+  			cout << "Введите корректный год(2001-2017): ";
+  		}
+  		if (baz.y<2001||baz.y>2017)
+  		{
+  			system("cls");
+  			cout<<"Введите год из диапазона от 2001 до 2017: ";
+  			goto metkay;
+  		}
+  		baz.d=DefDay(baz); }
+																								cout<<endl<<"Введите количество баллов при защите:  "; 
+		{
+		if(!(cin>>baz.bal) || cin.get() != '\n')
+                {
+                    t6:
+                    cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Введите от 1 до 100) : ";
+                    cin.clear(); 
+                    cin.sync();
+                    getch();
+                    cin>>baz.bal;
+                }
+                if(baz.bal<1||baz.bal>100) goto t6;
+}
+		j = Inzap(baz);
+		if (j == 0)
+		{
+			f = fopen("dan.dat", "ab+");
+			fwrite(&baz, sizeof(baz), 1, f);
+			fclose(f);
+			cout<<endl<<"Продолжить ввод?(1-нет)(2-да) : ";
+			cin >> c;
+		}
+		else
+		{
+			cout<<endl<<"Такая запись уже есть"<<endl;
+	
+		}
+	}
+}
+int Inzap(baza baz) // na ODINAKOVIE FIO
+{
+	baza baz1;
+	char *w,*w1,*e,*e1,*n, *n1, *m, *m1;
+	int k=0, r,q1,t1,t,q;
+		n=baz.surname;
+	    e=baz.fname;
+        w=baz.name;
+        m=baz.Gr1;
+        t=baz.GR3;
+       q=baz1.GR2;  
+	f=fopen("dan.dat", "rb+");
+	while ((fread(&baz1, sizeof(baza), 1, f) == 1))
+	{
+		n1=baz1.surname;
+	    e1=baz1.fname;
+        w1=baz1.name;
+        m1=baz1.Gr1;
+        t1=baz1.GR3;
+       q1=baz1.GR2;     
+		if ((strcmp(n, n1)==0)&&(strcmp(m, m1)==0)&&(strcmp(e, e1)==0)&&(strcmp(w, w1)==0)&&(q1==q)&&(t1==t))
+        k++;
+    }
+	fclose(f);
+	return(k);
+}
+void View()
+{	
+	system("cls");
+	baza baz;
+int n(0);
+	f = fopen("dan.dat", "rb+");
+	    if(!f)
+    {
+    	system("cls");
+	cout << endl << "Файл отсутствует";
+		cout<<endl<<"Для возвращения нажмите ENTER";
+	getch();
+fclose(f);
+main();
+	}
+	else
+	{
+	while (fread(&baz, sizeof(baz), 1, f) == 1)
+	{
+				strcpy(baz.nfs, baz.surname);
+		baz.name[1]='\0';
+		strcat(baz.nfs, baz.name);
+  		strcat(baz.nfs, ".");
+  		baz.fname[1]='\0';
+		strcat(baz.nfs, baz.fname);
+  		strcat(baz.nfs, ".");
+  		strcpy(baz.nfs2, baz.surnameK);
+		baz.nameK[1]='\0';
+		strcat(baz.nfs2, baz.nameK);
+  		strcat(baz.nfs2, ".");
+  		baz.fnameK[1]='\0';
+		strcat(baz.nfs2, baz.fnameK);
+  		strcat(baz.nfs2, ".");
+		n++;	
+		if(n==1)
+            	{
+    cout << endl << " _______________________________________________________________________________________";
+	cout << endl << "| № |   ФИО студента     |Специальность | Группа  |  ФИО руководителя  |Дата сдачи |Бал |";
+	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";
+				}
+		cout << endl << "|";
+	    cout.width(3); cout << n << "|";	            
+			cout.width(20); cout <<left<< baz.nfs << "|";	
+		cout.width(5); cout <<right<< baz.spec1<< "." ;if(baz.spec2<=10000000){cout << "0";} cout << baz.spec2<< "|";
+		if(strcmp(baz.ozn, "1") == 0)
+		{cout.width(4); cout << baz.Gr1<< "-"<< baz.GR2<< "-"<< baz.GR3<< "|";}
+		else
+		{cout.width(3); cout << baz.Gr1<< "-"<< baz.GR2<< baz.ozn<< "-"<< baz.GR3<< "|";}
+			cout.width(20); cout <<left<< baz.nfs2 << "|";	
+		cout.width(1); if(baz.d<=9){cout << "0";} cout <<right<< baz.d << ".";
+		cout.width(1); if(baz.m<=9){cout << "0";} cout <<right<< baz.m << ".";
+		cout.width(4); cout <<right<< baz.y << " |";
+		cout.width(3); cout <<right<< baz.bal << " |";
+		cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";
+	}
+	if(n==0)
+	{
+		cout << endl << "Записей нет.";
+		cout << endl << "Нажмите Enter для возврата в меню.";
+				getch();
+fclose(f);
+		main();
+	}
+	else
+	o=n;
+	cout<<endl<<"Для возвращения нажмите ENTER";
+	getch();
+	fclose(f);	
+}}
+void Sort() // SORTIROVKA FIO
+{
+    system("cls");
+	baza baz, baz1;
+	int k = 1, p;
+	f = fopen("dan.dat", "rb+");
+	while (k)
+	{
+		k = 0; p = 1;
+		fread(&baz, sizeof(baz), 1, f);
+		while (fread(&baz1, sizeof(baz1), 1, f) == 1)
+		{
+			p++;
+		if ((strcmp(baz.surname, baz1.surname)>0)||(strcmp(baz.surname, baz1.surname)==0)&&(strcmp(baz.name, baz1.name)>0)||(strcmp(baz.surname, baz1.surname)==0)&&(strcmp(baz.name, baz1.name)==0)&&(strcmp(baz.fname, baz1.fname)>0))
+		   	{
+				fseek(f, (p - 2)* sizeof(baz), SEEK_SET);
+				fwrite(&baz1, sizeof(baz), 1, f);
+				fseek(f, (p - 1)* sizeof(baz), SEEK_SET);
+				fwrite(&baz, sizeof(baz), 1, f);
+				k = 1;
+			}
+			else
+				baz = baz1;
+			fseek(f, p* sizeof(baz), SEEK_SET);
+		}
+		rewind(f);
+	}
+	fclose(f);
+}
+void Delete() // UDALENIE ZAPISI   
+{
+ baza baz;
+int i=0,k,t(0);
+View();
+FILE*f2;
+f=fopen("dan.dat","rb+");
+f2=fopen("dan1.dat","w+b");
+cout<<endl<<"Введите номер записи для удаления (Введите 0 - для возврата ):  ";
+ cin>>k;
+if(k==0)
+{
+fclose(f);
+fclose(f2);
+remove("dan1.dat");
+main();
+}
+if(o<k)
+{cout<<endl<<"Такого номера записи в файлe не существует ";
+cout<<endl<<"Нажмите  Enter чтобы повторить";
+getch();
+Delete(); 	
+}
+else
+{
+cout<<endl<<"Точно удалить "<<k<<"-ю запись? (1-да , 2-нет)";
+cin>>t;
+if(t!=1)
+{	
+Delete(); 
+fclose(f);
+fclose(f2);
+}
+getch();
+system("cls");
+while(fread(&baz, sizeof(baz),1,f)==1)
+{
+	i++;
+	if(i!=k)
+	fwrite(&baz,sizeof(baz),1,f2);
+}
+fclose(f);
+fclose(f2);
+remove("dan.dat");
+rename("dan1.dat","dan.dat");
+}}
+void Edit() // REDAKTIROVANIE
+{	
+	system("cls");
+	int i,p,j;
+	baza baz;
+	char c = 'y';
+	View();
+	cout<<endl<<"Введите номер записи для редактирование: ";
+	cin>>i;
+	if(o<i)
+{cout<<endl<<"Такого номера записи в файлe не существует ";
+cout<<endl<<"Нажмите  Enter чтобы повторить";
+getch();
+Edit(); 	
+}
+else{
+	system("cls");
+	f=fopen("dan.dat","r+b");
+	fseek(f,(i-1)*sizeof(baz),SEEK_SET);
+	fread(&baz,sizeof(baz),1,f);
+	cout<<endl<<"Введите номер поля для редактирования. ";
+	cout << endl << "1 - ФИО студента"; 
+	cout << endl << "2 - Специальность"; 
+	cout << endl << "3 - Группа"; 
+	cout << endl << "4 - ФИО руководителя"; 
+	cout << endl << "5 - Дата сдачи"; 
+	cout << endl << "6 - Бал";
+	cout << endl << "7 - Вернуться обратно в меню";
+		cout << endl << "Введите номер пункта меню: ";
+	if(!(cin>>p) || cin.get() != '\n')
+        {
+        	cout<<endl<<"Неверно, нажмите Enter чтобы повторить. (Введите от 1 до 7) :  ";
+            cin.clear(); 
+            cin.sync();
+            cin>>n;
+            system("cls");
+    } 
+	switch(p)
+	{
+        case 1:
+            {
+                system("cls");
+                cout<<endl<<"Введите ФИО студента  ";  
+		cout << endl << "Введите фамилию студента: ";		
+		cin.clear(); cin.sync();
+		baz.surname[0]='\0';
+		strcpy(baz.surname,Check());
+		cout << endl << "Введите имя студента: ";		
+		cin.clear(); cin.sync();
+		baz.name[0]='\0';
+		strcpy(baz.name,Check());
+		cout << endl << "Введите отчество студента: ";		
+		cin.clear(); cin.sync();
+		baz.fname[0]='\0';
+		strcpy(baz.fname,Check());break;
+            }
+        case 2:
+            {
+                system("cls");
+                cout<<endl<<"Введите Специальность "; 	
+				cout<<endl<<"Введите  номер отрасль знаний: ";
+		     if(!(cin>>baz.spec1) || cin.get() != '\n')
+                {
+                    c2:
+                    cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Введите от 1 до 9) :  ";
+                    cin.clear(); 
+                    cin.sync();
+                    getch();
+                    cin>>baz.spec1;
+                }
+            if(baz.spec1<0||baz.spec1>10) goto c2;  
+	 cout<<"Введите шифр специальности: "; 
+	     if(!(cin>>baz.spec2) || cin.get() != '\n')
+                {
+                    c1:
+                    cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Шифр состоит из 8 цифр) :  ";
+                    cin.clear(); 
+                    cin.sync();
+                    getch();
+                    cin>>baz.spec2;
+                }
+            if(baz.spec2<1000000||baz.spec2>99999999) goto c1;     break;
+            }  
+        case 3:
+            {
+                system("cls");
+                cout<<endl<<"Введите Группy: "; 	  cout<<endl<<"Введите название специальности в шифре группы "; 
+	cin.clear(); cin.sync();
+	char character[2];
+	gets(character);
+	for(int i=0; i<strlen(character); i++) 
+	{
+	if( islower(character[i]) )              
+    character[i] = toupper(character[i]);
+   	}
+    cout<<"Введенное после обработки:"<<character;
+    strcpy(baz.Gr1,character);    
+    cout<<endl<<"Введите  две последних цифры года поступления (2000-2017 год)"; 
+	if(!(cin>>baz.GR2) || cin.get() != '\n')
+                { q1:
+                    cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Введите  две последние цифры года набора группы  ) :    ";
+                    cin.clear(); 
+                    cin.sync();
+                    getch();
+                    cin>>baz.GR2;}
+if(baz.GR2<0||baz.GR2>18) goto q1;    
+Grp(&baz);
+ cout<<endl<<"Введите номер группы по счету в своей специальности (1-2)"; 
+if(!(cin>>baz.GR3) || cin.get() != '\n')
+ {q2:
+   cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Введите номер группы по счету в своей специальности  ) :    ";
+  cin.clear(); 
+   cin.sync();
+     getch();
+  cin>>baz.GR2;}
+    if(baz.GR3<0||baz.GR3>3) goto q2;   break;
+            }
+        case 4:
+            {
+                system("cls");
+       cout<<endl<<"Введите ФИО руководителя ";  
+	   cout << endl << "Введите фамилию руководителя: ";		
+		cin.clear(); cin.sync();
+		baz.surnameK[0]='\0';
+		strcpy(baz.surnameK,Check());
+		cout << endl << "Введите имя руководителя: ";		
+		cin.clear(); cin.sync();
+		baz.nameK[0]='\0';
+		strcpy(baz.nameK,Check());
+		cout << endl << "Введите отчество руководителя: ";		
+		cin.clear(); cin.sync();
+		baz.fnameK[0]='\0';
+		strcpy(baz.fnameK,Check());break;
+            }
+        case 5:
+            {
+                system("cls");
+                cout<<endl<<"Введите дату сдачи  "; 	
+		cout<<endl<<"Введите месяц(1-12): ";
+    	metkam:
+    	while (!(cin >> baz.m) || cin.get() != '\n')
+    	{
+    		system("cls");
+    	 	cout << "Неверно введен месяц. Повторите. " << endl;
+		 	cin.clear();cin.sync();
+		 	cout << "Выберите правильный месяц(1-12): ";
+	    }
+		if (baz.m<1||baz.m>12)
+		{
+			system("cls");
+  			cout<<"Введите месяц из диапазона от 1 до 12: ";
+  			goto metkam;
+		}
+    	cout<<endl<<"Введите год(2001-2017): ";
+		metkay:
+		while (!(cin >> baz.y) || cin.get() != '\n')
+  		{
+  			system("cls");
+  			cout << "Некорректно введеный год. Повторите. " << endl;
+  			cin.clear();cin.sync();
+  			cout << "Введите корректный год(2001-2017): ";
+  		}
+  		if (baz.y<2001||baz.y>2017)
+  		{
+  			system("cls");
+  			cout<<"Введите год из диапазона от 2001 до 2017: ";
+  			goto metkay;
+  		}
+  		baz.d=DefDay(baz);
+ 		system("cls");break;  }
+        case 6:
+            {
+                system("cls");
+                cout<<endl<<"Введите  Бал: ";		{
+		if(!(cin>>baz.bal) || cin.get() != '\n')
+                {
+                    t6:
+                    cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Введите от 1 до 100) :  ";
+                    cin.clear(); 
+                    cin.sync();
+                    getch();
+                    cin>>baz.bal;
+                }
+                if(baz.bal<1||baz.bal>100) goto t6;
+}break;
+case 7: menu();break;
+            } 
+    }
+  	fclose(f); 
+  	 j = Inzap(baz);
+		if (j ==0)
+		{		f=fopen("dan.dat","r+b");
+				fseek(f, (i-1)*sizeof(baz),SEEK_SET);
+				fwrite(&baz, sizeof(baz), 1, f);
+				fclose(f);
+				cout << endl << "Для продолжения ввода нажмите клавишу ENTER";
+		}
+		else
+		{
+				cout << endl << "Ошибка! Запись уже существует.";
+				cout << endl << "Для продолжения ввода нажмите клавишу ENTER";					            
+		}
+ 	getch(); 
+}}
+void menu() // МENU REDAKTIROVANIJA
+{
+	system("cls");
+	int n;
+	cout << endl << "Выберите один из пунктов меню для изменения нужной вам информации ";
+        cout << endl << "1 - Добавить запись";
+        cout << endl << "2 - Редактировать запись";
+        cout << endl << "3 - Удалить запись";
+        cout << endl << "4 - Вернуться в главное меню";
+        	cout << endl << "Введите номер пункта меню: ";
+	while(!(cin>>n) || cin.get() != '\n')
+    {
+       	cout<<"Такого пункта меню нет ! Повторите ввод: ";
+       	t1:
+       	cin.clear(); 
+       	cin.sync();
+    }
+    if(n<=4 && n>=1)
+       	switch(n)
+       	{
+       	 case 1:{Add(); break; }
+            case 2:{Edit(); break; } 
+            case 3:{Delete(); break; } 
+       		case 4:{main(); break;}
+		}
+	else
+	{
+		cout << endl << "Такого пункта меню нет, повторите ввод: "; 
+		goto t1;
+	}	
+}
+void menuf() // MENU  FILTR
+{
+	system("cls");
+	int n;
+cout << endl << "Выберите один из видов сортировки для  удобного вывода данных ";
+        cout << endl << "1 - Сортировка по ФИО (за алфавитом)";
+                cout << endl << "2 - Сортировка по ФИО руководителя(за алфавитом)";
+        cout << endl << "3 - Сортировка по дате(по возростанию) ";
+        cout << endl << "4 - Сортировка за рейтингом всех студентов(по убыванию)";
+
+        cout << endl << "5 - Вернуться в главное меню";
+        	cout << endl << "Введите номер пункта меню: ";
+	while(!(cin>>n) || cin.get() != '\n')
+    {
+       	cout<<"Такого пункта меню нет ! Повторите ввод: ";
+       	t1:
+       	cin.clear(); 
+       	cin.sync();
+    }
+    if(n<=5 && n>=1)
+       	switch(n)
+       	{
+       		 case 1:{Sort(); break; }
+       	  case 2:{Sort1(); break; }
+            case 3:{Sort2(); break; }
+            case 4:{Sort3(); break; }
+       		case 5:{main(); break;}
+		}
+	else
+	{
+		cout << endl << "Такого пункта меню нет, повторите ввод: "; 
+		goto t1;
+	}	View();
+}
+void menup() //POISK
+{	f = fopen("dan.dat", "rb+");
+    if(!f)
+    {
+    	system("cls");
+	cout << endl << "Файл отсутствует";
+	
+		cout<<endl<<"Для возвращения нажмите ENTER";
+	getch();
+fclose(f);
+main();
+	}
+ else
+ { 
+ 	int n;
+	system("cls");
+	cout << endl << "Выберите один из пунктов меню для вывода нужной вам информации ";
+        cout << endl << "1 - Поиск по ФИО студента ";
+        cout << endl << "2 - Поиск по специальости";
+        cout << endl << "3 - Поиск по группе";
+        cout << endl << "4 - Поиск по ФИО руководителя";
+        cout << endl << "5 - Рейтинг группе";
+        cout << endl << "6 - Рейтинг по специальности";
+        cout << endl << "7 - Вернуться в главное меню";
+        	cout << endl << "Введите номер пункта меню: ";
+	while(!(cin>>n) || cin.get() != '\n')
+    {
+       	cout<<"Такого пункта меню нет ! Повторите ввод: ";
+       	t1:
+       	cin.clear(); 
+       	cin.sync();
+    }
+    if(n<=7 && n>=1)
+       	switch(n)
+       	{
+       case 1:{onef(); break; }
+            case 2:{ones(); break; }
+            case 3:{oneg(); break; }
+            case 4:{onefk(); break; }
+            case 5:{VIEWG(); break; }
+            case 6:{VIEWR(); break; }
+       		case 7:{main(); break;}
+		}
+	else
+	{
+		cout << endl << "Такого пункта меню нет, повторите ввод: "; 
+		goto t1;
+	}	
+}fclose(f); 
+}
+void Sort1() // PO FIOK
+{
+    system("cls");
+	baza baz, baz1;
+	int k = 1, p;
+	f = fopen("dan.dat", "rb+");
+	while (k)
+	{
+		k = 0; p = 1;
+		fread(&baz, sizeof(baz), 1, f);
+		while (fread(&baz1, sizeof(baz1), 1, f) == 1)
+		{
+			p++;
+		if ((strcmp(baz.surnameK, baz1.surnameK)>0)||(strcmp(baz.surnameK, baz1.surnameK)==0)&&(strcmp(baz.nameK, baz1.nameK)>0)||(strcmp(baz.surnameK, baz1.surnameK)==0)&&(strcmp(baz.nameK, baz1.nameK)==0)&&(strcmp(baz.fnameK, baz1.fnameK)>0))
+			   
+			{
+				fseek(f, (p - 2)* sizeof(baz), SEEK_SET);
+				fwrite(&baz1, sizeof(baz), 1, f);
+				fseek(f, (p - 1)* sizeof(baz), SEEK_SET);
+				fwrite(&baz, sizeof(baz), 1, f);
+				k = 1;
+			}
+			else
+				baz = baz1;
+			fseek(f, p* sizeof(baz), SEEK_SET);
+		}
+		rewind(f);
+	}
+	fclose(f);
+}
+void Sort2() // PO DATE
+{
+	baza baz,baz1;
+	int k,p,A;
+	k=1;
+	f=fopen("dan.dat","rb+");
+	while(k)
+	{
+		k=0;p=1;
+		fread(&baz,sizeof(baz),1,f);
+		while (fread(&baz1,sizeof(baz),1,f)==1)
+		{
+			p++;
+			if (baz.y>baz1.y||baz.y==baz1.y&&baz.m>baz1.m||baz.y==baz1.y&&baz.m==baz1.m&&baz.d>baz1.d)
+			{
+				fseek(f,(p-2)* sizeof(baz), SEEK_SET);
+				fwrite(&baz1, sizeof(baz), 1, f);
+				fseek(f,(p-1)* sizeof(baz), SEEK_SET);
+				fwrite(&baz, sizeof(baz), 1, f);
+				k=1;
+			}
+			else 
+			baz=baz1;
+			fseek(f, p* sizeof(baz),SEEK_SET);
+		}
+		rewind(f);
+	}
+	fclose(f);
+	getch();
+}
+void Sort3() // PO BALL
+{
+          system("cls");
+	baza baz, baz1;
+	int k = 1, p;
+	f = fopen("dan.dat", "rb+");
+	while (k)
+	{
+		k = 0; p = 1;
+		fread(&baz, sizeof(baza), 1, f);
+		while (fread(&baz1, sizeof(baza), 1, f) == 1)
+		{
+			p++;
+			if (baz.bal<baz1.bal)
+			{
+				fseek(f, (p - 2)* sizeof(baza), SEEK_SET);
+				fwrite(&baz1, sizeof(baza), 1, f);
+				fseek(f, (p - 1)* sizeof(baza), SEEK_SET);
+				fwrite(&baz, sizeof(baza), 1, f);
+				k = 1;
+			}
+			else
+				baz = baz1;
+			fseek(f, p* sizeof(baza), SEEK_SET);
+		}
+		rewind(f);
+	}
+	fclose(f);
+}
+void onef() // ПОИСК ПО ФИО
+{
+	system("cls");
+	baza baz;
+	int n(0),k(1);
+	Sort();
+	f = fopen("dan.dat", "rb+");
+	cout<<endl<<"Введите ФИО студента ";
+	cout<<endl<<"Введите фамилию студента: ";
+	char nomer1[30];
+		cin.clear(); cin.sync();
+		nomer1[0]='\0';
+		strcpy(nomer1,Check());
+		cout<<endl<<"Введите имя студента: ";
+		char nomer2[30];
+		cin.clear(); cin.sync();
+		nomer2[0]='\0';
+		strcpy(nomer2,Check());
+			cout<<endl<<"Введите отчество студента: ";
+		char nomer3[30];
+		cin.clear(); cin.sync();
+		nomer3[0]='\0';
+		strcpy(nomer3,Check());
+		system("cls");
+    while (fread(&baz, sizeof(baza), 1, f) == 1)
+	{	
+        if(strcmp( baz.surname, nomer1) == 0 &&  strcmp(baz.name, nomer2) == 0 &&  strcmp(baz.fname, nomer3) == 0)
+        {   
+						strcpy(baz.nfs, baz.surname);
+		baz.name[1]='\0';
+		strcat(baz.nfs, baz.name);
+  		strcat(baz.nfs, ".");
+  		baz.fname[1]='\0';
+		strcat(baz.nfs, baz.fname);
+  		strcat(baz.nfs, ".");
+  		strcpy(baz.nfs2, baz.surnameK);
+		baz.nameK[1]='\0';
+		strcat(baz.nfs2, baz.nameK);
+  		strcat(baz.nfs2, ".");
+  		baz.fnameK[1]='\0';
+		strcat(baz.nfs2, baz.fnameK);
+  		strcat(baz.nfs2, ".");   	
+	cout << endl << " _______________________________________________________________________________________";
+	cout << endl << "| № |   ФИО студента     |Специальность | Группа  |  ФИО руководителя  |Дата сдачи |Бал |";
+	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";
+            	k++;
+					n++;
+		cout << endl << "|";
+	    cout.width(3); cout << n << "|";	            
+			cout.width(20); cout <<left<< baz.nfs << "|";	
+		cout.width(5); cout <<right<< baz.spec1<< "." ;if(baz.spec2<=10000000){cout << "0";} cout << baz.spec2<< "|";
+		if(strcmp(baz.ozn, "1") == 0)
+		{cout.width(4); cout << baz.Gr1<< "-"<< baz.GR2<< "-"<< baz.GR3<< "|";}
+		else
+		{cout.width(3); cout << baz.Gr1<< "-"<< baz.GR2<< baz.ozn<< "-"<< baz.GR3<< "|";}
+			cout.width(20); cout <<left<< baz.nfs2 << "|";	
+		cout.width(1); if(baz.d<=9){cout << "0";} cout <<right<< baz.d << ".";
+		cout.width(1); if(baz.m<=9){cout << "0";} cout <<right<< baz.m << ".";
+		cout.width(4); cout <<right<< baz.y << " |";
+		cout.width(3); cout <<right<< baz.bal << " |";
+         	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";}
+    }
+    if(k==1)
+    cout<<endl<<"Студента удовлетворяющий ваш запрос не найдено";
+	cout<<endl<<"Для возвращения в меню нажмите ENTER";
+	getch();
+	system("cls");
+	fclose(f);
+}
+void ones() // ПОИСК ПО СПЕЦИАЛЬНОСТИ
+{
+	system("cls");
+	baza baz;
+	int n(0),k(0);
+	int sp1,sp2;
+	Sort();
+	f = fopen("dan.dat", "rb+");
+	cout<<endl<<"Введите специальность ";
+    	cout<<endl<<"Введите  номер отрасль знаний: ";
+		     if(!(cin>>sp1) || cin.get() != '\n')
+                {
+                    c2:
+                    cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Введите от 1 до 9) : ";
+                 cin.clear(); 
+                    cin.sync();
+                    getch();
+                    cin>>sp1;
+                }
+            if(sp1<0||sp1>10) goto c2;  
+	 cout<<"Введите шифр специальности: "; 
+	     if(!(cin>>sp2) || cin.get() != '\n')
+                {
+                    c1:
+                    cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Шифр состоит из 8 цифр) : ";
+                   cin.clear(); 
+                    cin.sync();
+                    getch();
+                    cin>>sp2;
+                }
+            if(sp2<100000||sp2>99999999) goto c1;     
+    while (fread(&baz, sizeof(baza), 1, f) == 1)
+	{         	
+        if((baz.spec1==sp1)&&(baz.spec2==sp2))
+ {
+ 					strcpy(baz.nfs, baz.surname);
+		baz.name[1]='\0';
+		strcat(baz.nfs, baz.name);
+  		strcat(baz.nfs, ".");
+  		baz.fname[1]='\0';
+		strcat(baz.nfs, baz.fname);
+  		strcat(baz.nfs, ".");
+  		strcpy(baz.nfs2, baz.surnameK);
+		baz.nameK[1]='\0';
+		strcat(baz.nfs2, baz.nameK);
+  		strcat(baz.nfs2, ".");
+  		baz.fnameK[1]='\0';
+		strcat(baz.nfs2, baz.fnameK);
+  		strcat(baz.nfs2, ".");
+   n++;
+    k++;
+    if(k==1)
+            	{
+    cout << endl << " _______________________________________________________________________________________";
+	cout << endl << "|№  |   ФИО студента     |Специальность | Группа  |  ФИО руководителя  |Дата сдачи |Бал |";
+	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";	
+				}
+		cout << endl << "|";
+		    cout.width(3); cout << n << "|";	            
+			cout.width(20); cout <<left<< baz.nfs << "|";	
+		cout.width(5); cout <<right<< baz.spec1<< "." ;if(baz.spec2<=10000000){cout << "0";} cout << baz.spec2<< "|";
+		if(strcmp(baz.ozn, "1") == 0)
+		{cout.width(4); cout << baz.Gr1<< "-"<< baz.GR2<< "-"<< baz.GR3<< "|";}
+		else
+		{cout.width(3); cout << baz.Gr1<< "-"<< baz.GR2<< baz.ozn<< "-"<< baz.GR3<< "|";}
+			cout.width(20); cout <<left<< baz.nfs2 << "|";	
+		cout.width(1); if(baz.d<=9){cout << "0";} cout <<right<< baz.d << ".";
+		cout.width(1); if(baz.m<=9){cout << "0";} cout <<right<< baz.m << ".";
+		cout.width(4); cout <<right<< baz.y << " |";
+		cout.width(3); cout <<right<< baz.bal << " |";
+       	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";}
+    }  
+    if(k==0)
+    cout<<endl<<"Специальности удовлетворяющий ваш запрос не найдено";
+	cout<<endl<<"Для возвращения в меню нажмите ENTER";
+	getch();
+	system("cls");
+	fclose(f);
+}
+void oneg() // // ПОИСК ПО ГРУППЕ
+{
+	system("cls");
+	baza baz;
+	int n(0),k(0),gr1,gr2;
+	char str[20];
+	Sort();
+	f = fopen("dan.dat", "rb+");
+	cout<<endl<<"Введите группу ";
+	 cout<<endl<<"Введите название специальности в шифре группы "; 
+		  		cin.clear(); cin.sync();
+		char character[2];
+		gets(character);
+		for(int i=0; i<strlen(character); i++) 
+		{
+		if( islower(character[i]) )              
+        character[i] = toupper(character[i]);
+    	}
+    	cout<<"Введенное после обработки:"<<character;
+    	strcpy(str,character);    
+		  cout<<endl<<"Введите  две последних цифры года поступления "; cin>>gr1;   
+		  Grp(&baz);
+		  cout<<endl<<"Введите номер группы по счету в своей специальности "; cin>>gr2;   
+    while (fread(&baz, sizeof(baza), 1, f) == 1)
+	{
+        if((strcmp(baz.ozn, baz.ozn) == 0)&&(strcmp(baz.Gr1, str) == 0)&&(baz.GR2==gr1)&&(baz.GR3==gr2))
+        {
+        					strcpy(baz.nfs, baz.surname);
+		baz.name[1]='\0';
+		strcat(baz.nfs, baz.name);
+  		strcat(baz.nfs, ".");
+  		baz.fname[1]='\0';
+		strcat(baz.nfs, baz.fname);
+  		strcat(baz.nfs, ".");
+  		strcpy(baz.nfs2, baz.surnameK);
+		baz.nameK[1]='\0';
+		strcat(baz.nfs2, baz.nameK);
+  		strcat(baz.nfs2, ".");
+  		baz.fnameK[1]='\0';
+		strcat(baz.nfs2, baz.fnameK);
+  		strcat(baz.nfs2, ".");
+            	k++;
+            	if(k==1)
+            	{
+            			cout << endl << " _______________________________________________________________________________________";
+	cout << endl << "|№  |   ФИО студента     |Специальность | Группа  |  ФИО руководителя  |Дата сдачи |Бал |";
+	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";	
+				}
+					n++;
+		cout << endl << "|";
+	    cout.width(3); cout << n << "|";	            
+			cout.width(20); cout <<left<< baz.nfs << "|";	
+		cout.width(5); cout <<right<< baz.spec1<< "." ;if(baz.spec2<=10000000){cout << "0";} cout << baz.spec2<< "|";
+		if(strcmp(baz.ozn, "1") == 0)
+		{cout.width(4); cout << baz.Gr1<< "-"<< baz.GR2<< "-"<< baz.GR3<< "|";}
+		else
+		{cout.width(3); cout << baz.Gr1<< "-"<< baz.GR2<< baz.ozn<< "-"<< baz.GR3<< "|";}
+			cout.width(20); cout <<left<< baz.nfs2 << "|";	
+		cout.width(1); if(baz.d<=9){cout << "0";} cout <<right<< baz.d << ".";
+		cout.width(1); if(baz.m<=9){cout << "0";} cout <<right<< baz.m << ".";
+		cout.width(4); cout <<right<< baz.y << " |";
+		cout.width(3); cout <<right<< baz.bal << " |";
+        	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";}
+    }    
+    if(k==0)
+    cout<<endl<<"Группы удовлетворяющий ваш запрос не найдено";
+	cout<<endl<<"Для возвращения в меню нажмите ENTER";
+	getch();
+	system("cls");
+	fclose(f);
+}
+void onefk() // ПОИСК ПО ФИОК
+{
+	system("cls");
+	baza baz;
+	int n(0),k = 1;
+	Sort();
+	f = fopen("dan.dat", "rb+");
+	cout<<endl<<"Введите ФИО руководителя ";
+	cout<<endl<<"Введите фамилию руководителя: ";
+	char nomer1[30];
+		cin.clear(); cin.sync();
+		nomer1[0]='\0';
+		strcpy(nomer1,Check());
+		cout<<endl<<"Введите имя руководителя: ";
+		char nomer2[30];
+		cin.clear(); cin.sync();
+		nomer2[0]='\0';
+		strcpy(nomer2,Check());
+			cout<<endl<<"Введите отчество руководителя: ";
+		char nomer3[30];
+		cin.clear(); cin.sync();
+		nomer3[0]='\0';
+		strcpy(nomer3,Check());
+		system("cls");
+    while (fread(&baz, sizeof(baza), 1, f) == 1)
+	{	
+        if(strcmp( baz.surnameK, nomer1) == 0 && strcmp(baz.nameK, nomer2) == 0 &&  strcmp(baz.fnameK, nomer3) == 0)
+        {
+        		strcpy(baz.nfs, baz.surname);
+		baz.name[1]='\0';
+		strcat(baz.nfs, baz.name);
+  		strcat(baz.nfs, ".");
+  		baz.fname[1]='\0';
+		strcat(baz.nfs, baz.fname);
+  		strcat(baz.nfs, ".");
+  		strcpy(baz.nfs2, baz.surnameK);
+		baz.nameK[1]='\0';
+		strcat(baz.nfs2, baz.nameK);
+  		strcat(baz.nfs2, ".");
+  		baz.fnameK[1]='\0';
+		strcat(baz.nfs2, baz.fnameK);
+  		strcat(baz.nfs2, ".");
+            	k++;
+           	if(k==2)
+            	{
+            			cout << endl << " _______________________________________________________________________________________";
+	cout << endl << "|№  |   ФИО студента     |Специальность | Группа  |  ФИО руководителя  |Дата сдачи |Бал |";
+	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";	
+				}
+					n++;
+		cout << endl << "|";
+  cout.width(3); cout << n << "|";	            
+			cout.width(20); cout <<left<< baz.nfs << "|";	
+		cout.width(5); cout <<right<< baz.spec1<< "." ;if(baz.spec2<=10000000){cout << "0";} cout << baz.spec2<< "|";
+		if(strcmp(baz.ozn, "1") == 0)
+		{cout.width(4); cout << baz.Gr1<< "-"<< baz.GR2<< "-"<< baz.GR3<< "|";}
+		else
+		{cout.width(3); cout << baz.Gr1<< "-"<< baz.GR2<< baz.ozn<< "-"<< baz.GR3<< "|";}
+			cout.width(20); cout <<left<< baz.nfs2 << "|";	
+		cout.width(1); if(baz.d<=9){cout << "0";} cout <<right<< baz.d << ".";
+		cout.width(1); if(baz.m<=9){cout << "0";} cout <<right<< baz.m << ".";
+		cout.width(4); cout <<right<< baz.y << " |";
+		cout.width(3); cout <<right<< baz.bal << " |";
+         	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";}
+    }  
+    if(k==1)
+    cout<<endl<<"Руководителя удовлетворяющий  ваш запрос не найдено";
+	cout<<endl<<"Для возвращения в меню нажмите ENTER";
+	getch();
+	fclose(f);
+}
+char * Check() // NA KOREKTNIY VVOD FIO
+{
+	SetConsoleCP(1251);
+	SetConsoleOutputCP(1251);
+	setlocale(LC_ALL, "Rus");
+  	int q(0),dr,k=19,sh;
+	char   wrk[k], wrkk[k];	
+	do{	   
+    wrkk[0]='\0';
+	wrk[0]='\0';
+    if(q==1)
+	{
+	cout<<"В вашем вводе ошибка. \nПовторите ввод:";
+	}
+	cin.sync();
+   	cin.clear();
+	gets(wrk);	
+	q=0;
+	wrkk[strlen(wrkk)]='\0';
+	wrk[k]='\0';	
+	int d=strlen(wrk);
+	if (d==0) 
+	{
+	q=1;
+	}
+	else
+	{
+ 	    for (int i = 0 ; i < strlen (wrk); i++ ) 
+    	{
+    	if (wrk[0]==' '||wrk[0]=='\n') 
+    	{
+    	q=1; break;
+    	}
+     	if (isalnum(wrk[0])==false&&wrk[0]!=' '&&wrk[0]!='я') 
+     	{
+    	q=1; break;
+    	}	
+     	if (isdigit(wrk[i])!=0) 
+    	{
+     	q=1; break;
+    	}
+    	}
+}
+		if(q!=1)
+		{
+		for (int i = 0 ; i < strlen (wrk); i++ ) 
+		if ((isalpha(wrk[i])==false)&&(wrk[i]!='я'))   wrk[i]=' ';
+		for(int i=0; i<strlen(wrk); i++)
+    	{
+			if(wrk[i]==' ')
+        	{ wrk[i]=wrk[i+1];
+            	for(int j=i; j<strlen(wrk); j++)
+                	{
+					wrk[j]=wrk[j+1];
+                	i--;
+                	}
+        	}
+		}		  	
+        dr=0;
+        for(int i=0; i<strlen(wrk); i++) if (wrk[i]==' ') dr++; 
+        if (dr==strlen(wrk)) q=1;								
+		sh=0;
+		for(int i=0; i<strlen(wrk); i++) 
+		{
+			if (wrk[i]!=' '){wrkk[sh]=wrk[i]; wrkk[sh]=tolower(wrkk[sh]); sh++;  }
+		}
+ 		wrkk[sh]='\0';
+        wrkk[0]=toupper(wrkk[0]);
+        cout<<"Введенное после обработки:";
+		wrkk[sh]=' ';
+        wrkk[sh+1]='\0';
+		cout<<wrkk;
+    	return wrkk;
+		}			
+		}while (q!=0);
+	}
+void Crte() // SOZDANIE FAILA
+{ 
+system("cls");
+ int i;
+ FILE *f;
+if((f = fopen("dan.dat","r+b"))==NULL)
+  { cout<<"Файл не существует";
+    cout<<endl<<"Хотите создать? (1 - да):";
+    cin>>i;
+   if(i==1)
+    {  
+     f = fopen("dan.dat","wb"); 
+     fclose(f);
+     cout<<"Создан новый файл";
+       cout<<endl<<"Для возврата в главное меню нажмите Enter";
+     getch();
+    }
+   else
+    {
+     cout<<"Вы отказались создавать новый файл";
+       cout<<endl<<" Для возврата в главное меню нажмите Enter ";
+     getch();
+    }
+  }
+ else
+ {
+   cout<<"Файл существует! ";
+     cout<<endl<<"Вы хотите удалить старый файл и создать новый? (1 - да): ";
+   cin>>i;
+   if(i==1)
+    {  
+     fclose(f);
+     f = fopen("dan.dat","wb"); 
+     fclose(f);
+     cout<<"Создан новый файл ";
+       cout<<endl<<"Для возврата в главное меню нажмите Enter ";
+     getch();
+    }
+   else
+   {
+    cout<<"Вы отказались создавать новый файл";
+     cout<<"Для возврата в главное меню нажмите Enter ";
+    getch();
+    fclose(f); 
+   }
+ }
+return;
+}
+void ViewD() // ОБЩИЙ РЕЙТИНГ неудволетворительніх оценок
+{
+	system("cls");
+	baza baz;
+int n(0),k(0);
+	Sort();
+	    if(!f)
+    {
+    	system("cls");
+	cout << endl << "Файл отсутствует";
+		cout<<endl<<"Для возвращения нажмите ENTER";
+	getch();
+fclose(f);
+	}
+	else
+	{
+	f = fopen("dan.dat", "rb+");
+	while (fread(&baz, sizeof(baz), 1, f) == 1)
+{
+	if(baz.bal<60)
+{
+k++;
+				strcpy(baz.nfs, baz.surname);
+		baz.name[1]='\0';
+		strcat(baz.nfs, baz.name);
+  		strcat(baz.nfs, ".");
+  		baz.fname[1]='\0';
+		strcat(baz.nfs, baz.fname);
+  		strcat(baz.nfs, ".");
+  		strcpy(baz.nfs2, baz.surnameK);
+		baz.nameK[1]='\0';
+		strcat(baz.nfs2, baz.nameK);
+  		strcat(baz.nfs2, ".");
+  		baz.fnameK[1]='\0';
+		strcat(baz.nfs2, baz.fnameK);
+  		strcat(baz.nfs2, ".");
+		    if(k==1)
+            	{
+    cout << endl << " _______________________________________________________________________________________";
+	cout << endl << "|№  |   ФИО студента     |Специальность | Группа  |  ФИО руководителя  |Дата сдачи |Бал |";
+	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";	
+				}
+		n++; 
+		cout << endl << "|";
+	 	    cout.width(3); cout << n << "|";	            
+			cout.width(20); cout <<left<< baz.nfs << "|";	
+		cout.width(5); cout <<right<< baz.spec1<< "." ;if(baz.spec2<=10000000){cout << "0";} cout << baz.spec2<< "|";
+		if(strcmp(baz.ozn, "1") == 0)
+		{cout.width(4); cout << baz.Gr1<< "-"<< baz.GR2<< "-"<< baz.GR3<< "|";}
+		else
+		{cout.width(3); cout << baz.Gr1<< "-"<< baz.GR2<< baz.ozn<< "-"<< baz.GR3<< "|";}
+			cout.width(20); cout <<left<< baz.nfs2 << "|";	
+		cout.width(1); if(baz.d<=9){cout << "0";} cout <<right<< baz.d << ".";
+		cout.width(1); if(baz.m<=9){cout << "0";} cout <<right<< baz.m << ".";
+		cout.width(4); cout <<right<< baz.y << " |";
+		cout.width(3); cout <<right<< baz.bal << " |";
+		cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";	
+}}
+	if(k==0)
+    cout<<endl<<"Студентов сдавшие проэкт на неудовлетворительный бал нету";
+	cout<<endl<<"Для возвращения нажмите ENTER";
+	getch();
+	system("cls");
+	fclose(f);	
+}}
+int DefDay(baza baz)
+{
+	int m=baz.m,y=baz.y;
+	if (m==1||m==3||m==5||m==7||m==8||m==10||m==12)
+	{ 
+		cout<<endl<<"Введите день(1-31): ";
+		metka1:  
+		while (!(cin >> baz.d) || cin.get() != '\n')
+		{
+			system("cls");
+			cout << "Неверно введён день." << endl;
+			cin.clear();cin.sync();
+			cout << "Введите правильный день(1-31): ";
+		}
+		if (baz.d<1||baz.d>31)
+		{	
+			system("cls");
+			cout<<"В этом месяце нет такого дня. Введите день из диапазона от 1 до 31: ";
+			goto metka1;
+		}
+	}
+	if (m==4||m==6||m==9||m==11)
+	{ 
+		cout<<endl<<"Введите день(1-30): ";
+		metka2:  
+		while (!(cin >>baz.d) || cin.get() != '\n')
+    	{	
+    		system("cls");
+    		cout << "Неверно введён день." << endl;
+    		cin.clear();cin.sync();
+    		cout << "Введите правильный день(1-30): ";
+    	}
+    	if (baz.d<1||baz.d>30)
+    	{
+    		system("cls");
+			cout<<"В этом месяце нет такого дня. Введите день из диапазона от 1 до 30: ";
+    		goto metka2;
+    	}
+	}
+	if(m==2)
+	{
+		if (y==2004||y==2008||y==2012||y==2016||y==2020||y==2024)
+    	{
+    		cout<<endl<<"Введите день(1-29): ";
+    		metka3:  
+    		while (!(cin >>baz.d) || cin.get() != '\n')
+        	{
+        		system("cls");
+        		cout << "Неверно введён день. Повторите. " << endl;
+        		cin.clear();cin.sync();
+    			cout << "Введите правильный день(1-29): ";
+ 			}
+        	if (baz.d<1||baz.d>29)
+    		{
+    			system("cls");
+ 				cout<<"В этом месяце нет такого дня. Введите день из диапазона от 1 до 29: ";
+ 				goto metka3;
+			}
+		}	
+		else
+		{	
+  			cout<<endl<<"Введите день(1-28): ";
+  			metka4:  
+  			while (!(cin >>baz.d) || cin.get() != '\n')
+ 			{
+ 				system("cls");
+  				cout << "Неверно введён день." << endl;
+  				cin.clear();cin.sync();
+  				cout << "Введите правильный день(1-28): ";
+ 			}
+ 			if (baz.d<1||baz.d>28)
+ 			{
+			 		 
+				cout<<"В этом месяце нет такого дня. Введите день из диапазона от 1 до 28: ";
+				goto metka4;
+			}
+		}return baz.d;	
+	}
+}
+void VIEWR() // // ОБЩИЙ РЕЙТИНГ ПО СПЕЦИАЛЬНОСТИ
+{
+	system("cls");
+	baza baz;
+	int n(0),k(0);
+	int sp1,sp2;
+	Sort3();
+	    if(!f)
+    {
+    	system("cls");
+	cout << endl << "Файл отсутствует";
+		cout<<endl<<"Для возвращения в меню нажмите ENTER";
+	getch();
+	fclose(f);
+	}
+	else{
+	f = fopen("dan.dat", "rb+");
+	cout<<endl<<"Введите специальность ";
+    	cout<<endl<<"Введите  номер отрасль знаний: ";
+		     if(!(cin>>sp1) || cin.get() != '\n')
+                {
+                    c2:
+                    cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Введите от 1 до 9) : ";
+                 cin.clear(); 
+                    cin.sync();
+                    getch();
+                    cin>>sp1;
+                }
+            if(sp1<0||sp1>10) goto c2;  
+	 cout<<"Введите шифр специальности: "; 
+	     if(!(cin>>sp2) || cin.get() != '\n')
+                {
+                    c1:
+                    cout<<endl<<"Неверно, нажмите Enter чтобы повторить (Шифр состоит из 8 цифр) : ";
+                   cin.clear(); 
+                    cin.sync();
+                    getch();
+                    cin>>sp2;
+                }
+            if(sp2<100000||sp2>99999999) goto c1;     
+
+    while (fread(&baz, sizeof(baza), 1, f) == 1)
+	{      
+        if((baz.spec1==sp1)&&(baz.spec2==sp2))
+ {
+ 					strcpy(baz.nfs, baz.surname);
+		baz.name[1]='\0';
+		strcat(baz.nfs, baz.name);
+  		strcat(baz.nfs, ".");
+  		baz.fname[1]='\0';
+		strcat(baz.nfs, baz.fname);
+  		strcat(baz.nfs, ".");
+  		strcpy(baz.nfs2, baz.surnameK);
+		baz.nameK[1]='\0';
+		strcat(baz.nfs2, baz.nameK);
+  		strcat(baz.nfs2, ".");
+  		baz.fnameK[1]='\0';
+		strcat(baz.nfs2, baz.fnameK);
+  		strcat(baz.nfs2, ".");
+   n++;
+    k++;
+    if(k==1)
+            	{
+    cout << endl << " _______________________________________________________________________________________";
+	cout << endl << "|№  |   ФИО студента     |Специальность | Группа  |  ФИО руководителя  |Дата сдачи |Бал |";
+	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";	
+				}
+		cout << endl << "|";
+	    cout.width(3); cout << n << "|";	            
+			cout.width(20); cout <<left<< baz.nfs << "|";	
+		cout.width(5); cout <<right<< baz.spec1<< "." ;if(baz.spec2<=10000000){cout << "0";} cout << baz.spec2<< "|";
+		if(strcmp(baz.ozn, "1") == 0)
+		{cout.width(4); cout << baz.Gr1<< "-"<< baz.GR2<< "-"<< baz.GR3<< "|";}
+		else
+		{cout.width(3); cout << baz.Gr1<< "-"<< baz.GR2<< baz.ozn<< "-"<< baz.GR3<< "|";}
+			cout.width(20); cout <<left<< baz.nfs2 << "|";	
+		cout.width(1); if(baz.d<=9){cout << "0";} cout <<right<< baz.d << ".";
+		cout.width(1); if(baz.m<=9){cout << "0";} cout <<right<< baz.m << ".";
+		cout.width(4); cout <<right<< baz.y << " |";
+		cout.width(3); cout <<right<< baz.bal << " |";
+       	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";}
+    }
+    if(k==0)
+    cout<<endl<<"Специальности удовлетворяющий ваш запрос не найдено";
+	cout<<endl<<"Для возвращения в меню нажмите ENTER";
+	getch();
+	system("cls");
+	fclose(f);
+}}
+void VIEWG() // // // ОБЩИЙ РЕЙТИНГ ПО ГРУППЕ
+{
+	system("cls");
+	baza baz;
+	int n(1),k(0),gr1,gr2;
+	char str[20];
+	Sort3();
+	f = fopen("dan.dat", "rb+");
+	cout<<endl<<"Введите группу ";
+	 cout<<endl<<"Введите название специальности в шифре группы "; 
+		  		cin.clear(); cin.sync();
+		char character[2];
+		gets(character);
+		for(int i=0; i<strlen(character); i++) 
+		{
+		if( islower(character[i]) )              
+        character[i] = toupper(character[i]);
+    	}
+    	cout<<"Введенное после обработки:"<<character;
+    	strcpy(str,character);    
+		  cout<<endl<<"Введите  две последних цифры года поступления "; cin>>gr1;   
+		  Grp(&baz);
+		  cout<<endl<<"Введите номер группы по счету в своей специальности "; cin>>gr2;   
+    while (fread(&baz, sizeof(baza), 1, f) == 1)
+	{
+        if((strcmp(baz.ozn, baz.ozn) == 0)&&(strcmp(baz.Gr1, str) == 0)&&(baz.GR2==gr1)&&(baz.GR3==gr2))
+        {
+        					strcpy(baz.nfs, baz.surname);
+		baz.name[1]='\0';
+		strcat(baz.nfs, baz.name);
+  		strcat(baz.nfs, ".");
+  		baz.fname[1]='\0';
+		strcat(baz.nfs, baz.fname);
+  		strcat(baz.nfs, ".");
+  		strcpy(baz.nfs2, baz.surnameK);
+		baz.nameK[1]='\0';
+		strcat(baz.nfs2, baz.nameK);
+  		strcat(baz.nfs2, ".");
+  		baz.fnameK[1]='\0';
+		strcat(baz.nfs2, baz.fnameK);
+  		strcat(baz.nfs2, ".");
+            	k++;
+            	if(k==1)
+            	{
+            			cout << endl << " _______________________________________________________________________________________";
+	cout << endl << "|№  |   ФИО студента     |Специальность | Группа  |  ФИО руководителя  |Дата сдачи |Бал |";
+	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";	
+				}
+					n++;
+		cout << endl << "|";
+	    cout.width(3); cout << n << "|";	            
+			cout.width(20); cout <<left<< baz.nfs << "|";	
+		cout.width(5); cout <<right<< baz.spec1<< "." ;if(baz.spec2<=10000000){cout << "0";} cout << baz.spec2<< "|";
+		if(strcmp(baz.ozn, "1") == 0)
+		{cout.width(4); cout << baz.Gr1<< "-"<< baz.GR2<< "-"<< baz.GR3<< "|";}
+		else
+		{cout.width(3); cout << baz.Gr1<< "-"<< baz.GR2<< baz.ozn<< "-"<< baz.GR3<< "|";}
+			cout.width(20); cout <<left<< baz.nfs2 << "|";	
+		cout.width(1); if(baz.d<=9){cout << "0";} cout <<right<< baz.d << ".";
+		cout.width(1); if(baz.m<=9){cout << "0";} cout <<right<< baz.m << ".";
+		cout.width(4); cout <<right<< baz.y << " |";
+		cout.width(3); cout <<right<< baz.bal << " |";
+        	cout << endl << "|___|____________________|______________|_________|____________________|___________|____|";}
+    }    
+    if(k==0)
+    cout<<endl<<"Группы удовлетворяющий ваш запрос не найдено";
+	cout<<endl<<"Для возвращения в меню нажмите ENTER";
+	getch();
+	system("cls");
+	fclose(f);
+}
+void ViewPO() // POLNIY VIVOD INFO
+{
+	system("cls");
+	baza baz;
+int n(0);
+	Sort();
+	    if(!f)
+    {
+    	system("cls");
+	cout << endl << "Файл отсутствует";
+		cout<<endl<<"Для возвращения нажмите ENTER";
+	getch();
+fclose(f);
+	}
+	else
+	{
+	f = fopen("dan.dat", "rb+");
+	while (fread(&baz, sizeof(baz), 1, f) == 1)
+	{
+		n++;
+			if(n==1)
+            	{
+	cout << endl << " _______________________________________________________________________________________________________________________________";
+	cout << endl << "| № |             ФИО студента               |Специальность | Группа  |            ФИО руководителя            |Дата сдачи |Бал |";
+	cout << endl << "|___|________________________________________|______________|_________|________________________________________|___________|____|";
+				}
+		cout << endl << "|";
+	    cout.width(3); cout << n << "|";
+	    
+        
+		cout.width(14); cout  <<  baz.surname<<" ";
+			cout.width(10); cout  <<  baz.name<<" ";
+				cout.width(14); cout  <<  baz.fname<<"|";
+				
+		cout.width(5); cout<< baz.spec1<< "." ;if(baz.spec2<=10000000){cout << "0";} cout << baz.spec2<< "|";
+			if(strcmp(baz.ozn, "1") == 0)
+		{cout.width(4); cout << baz.Gr1<< "-"<< baz.GR2<< "-"<< baz.GR3<< "|";}
+		else
+		{cout.width(3); cout << baz.Gr1<< "-"<< baz.GR2<< baz.ozn<< "-"<< baz.GR3<< "|";}
+			cout.width(14); cout <<  baz.surnameK<<" ";
+			cout.width(10); cout  <<  baz.nameK<<" ";
+				cout.width(14); cout  <<  baz.fnameK<<"|";
+		cout.width(1); if(baz.d<=9){cout << "0";} cout << baz.d << ".";
+		cout.width(1); if(baz.m<=9){cout << "0";} cout << baz.m << ".";
+		cout.width(4); cout << baz.y << " |";
+		cout.width(3); cout << baz.bal << " |";
+	cout << endl << "|___|________________________________________|______________|_________|________________________________________|___________|____|";	
+	}
+		if(n==0)
+	{
+		cout << endl << "Записей нет.";
+		cout << endl << "Нажмите Enter для возврата в меню.";
+				getch();
+fclose(f);
+		main();
+	}
+	else
+	{
+	cout<<endl<<"Для возвращения нажмите ENTER";
+	getch();
+	fclose(f);	
+}}}
+ void Grp(baza* baz1)
+{
+	int s;
+	cout << endl << "Студент поступил после? "<<endl <<"1 - Училища"<<endl<<"2 - 11-класса "<<endl<<"3 - 9-класса "<< endl <<"Выберите пункт меню:"; 
+        int q=0;
+int value;
+do
+{
+char input[254];
+if(q==1)
+{
+cout<<"Ошибка ввода. \nПовторите ввод:";
+}
+cin.sync();
+cin.clear();
+gets(input);
+for (int i = 0 ; i < strlen (input); i++ ) 
+{
+	if (isalnum(input[i])==false) 
+				{
+				q=1;break;
+				}
+	if(isdigit(input[i])!=0)
+	{
+		value = atoi(input);
+		q=0;
+		break;
+	}	
+	else
+	{	q=1;	break;	}
+}
+	if( (q==0) && (value>=1&&value<=3))
+	{	q=0;	s=value;	}
+	else
+	{
+	q=1;
+	}
+}while(q==1);
+			switch(s)
+			{
+			case 1:
+			strcpy( baz1->ozn, "у");
+			break;
+			case 2:
+			strcpy( baz1->ozn, "п"); 
+			break;
+			case 3:
+			strcpy( baz1->ozn, "1"); 
+			break;
+			} 		                    	
+
